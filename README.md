@@ -3,7 +3,7 @@ This repository contains Github Actions for the check, test, build and package a
 
 1. SBT
 2. MAVEN
-3. GRADLE
+3. NodeJs
 
 You can use any of the build workflow as per your project build tool and update it accordingly.
 
