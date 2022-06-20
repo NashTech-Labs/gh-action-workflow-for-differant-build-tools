@@ -1,0 +1,53 @@
+name: Scala CI with Sbt
+
+on:
+  workflow_dispatch:
+
+jobs:
+  sbt-check-test-build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Set up JDK 1.8
+      uses: actions/setup-java@v1
+      with:
+        java-version: 1.8
+    
+    - name: Cache SBT
+      uses: actions/cache@v2
+      with:
+        path: |
+          ~/.ivy2/cache
+          ~/.sbt
+        key: ${{ runner.os }}-sbt-${{ hashFiles('**/build.sbt') }}
+    
+    # The below cmds will be vary as per your requirement
+    - name: Compile test and generate artifact
+      run: |
+        sbt clean compile
+        sbt test
+        sbt assembly
+        
+    - name: Generate test report
+      run: |
+        sbt cpd
+        sbt scapegoat
+        sbt coverage test coverageRepor
+        
+    # Dockerhub username ans password should be yours
+    - name: Login to DockerHub
+      uses: docker/login-action@v1
+      with:
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_PASSWORD }}
+        
+    # Dockerfile should be in the root directory of the project
+    - name: Build and push docker image
+      uses: docker/build-push-action@v2
+      with:
+        context: .
+        file: ./Dockerfile
+        push: true
+        tags: sakshigawande12/app:latest
+        
